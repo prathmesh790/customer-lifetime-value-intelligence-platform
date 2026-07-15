@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Customer Lifetime Value Intelligence Platform</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+
+<body>
+
+<div class="background-shapes">
+<span></span>
+<span></span>
+<span></span>
+</div>
+
+<h1 class="title">Customer Lifetime Value Intelligence</h1>
+
+
+<div class="metrics">
+
+<div class="metric">
+<h3>Customers</h3>
+<p id="customers">1250</p>
+</div>
+
+<div class="metric">
+<h3>Avg CLV</h3>
+<p id="avgclv">₹ 3200</p>
+</div>
+
+<div class="metric">
+<h3>Retention</h3>
+<p id="retention">78%</p>
+</div>
+
+</div>
+
+
+
+<div class="main">
+
+
+<div class="left">
+
+<h2>Customer Inputs</h2>
+
+<form method="POST">
+
+<label>Tenure (Months)</label>
+
+<input
+type="range"
+name="tenure"
+min="1"
+max="120"
+value="{{ tenure if tenure else 24 }}"
+oninput="tenureBox.value=this.value">
+
+<input
+type="number"
+id="tenureBox"
+value="{{ tenure if tenure else 24 }}"
+oninput="this.previousElementSibling.value=this.value">
+
+
+<label>Monthly Charges (₹)</label>
+
+<input
+type="range"
+name="monthly"
+min="10"
+max="200"
+value="{{ monthly if monthly else 100 }}"
+oninput="monthlyBox.value=this.value">
+
+<input
+type="number"
+id="monthlyBox"
+value="{{ monthly if monthly else 100 }}"
+oninput="this.previousElementSibling.value=this.value">
+
+
+<label>Total Charges (₹ )</label>
+
+<input
+type="range"
+name="total"
+min="100"
+max="10000"
+value="{{ total if total else 1000 }}"
+oninput="totalBox.value=this.value">
+
+<input
+type="number"
+id="totalBox"
+value="{{ total if total else 1000 }}"
+oninput="this.previousElementSibling.value=this.value">
+
+
+<label>Satisfaction Score</label>
+
+<input
+type="range"
+name="satisfaction"
+min="1"
+max="5"
+value="{{ satisfaction if satisfaction else 3 }}"
+oninput="satBox.value=this.value">
+
+<input
+type="number"
+id="satBox"
+value="{{ satisfaction if satisfaction else 3 }}"
+oninput="this.previousElementSibling.value=this.value">
+
+
+<button type="submit">Predict Customer Value</button>
+
+</form>
+
+</div>
+
+
+
+<div class="result-card">
+
+<h2>Prediction</h2>
+
+{% if prediction %}
+
+<h1>₹ {{ prediction }}</h1>
+
+<p class="segment
+{% if segment == 'High Value Customer' %}
+high
+{% elif segment == 'Medium Value Customer' %}
+medium
+{% else %}
+low
+{% endif %}
+">
+
+{{ segment }}
+
+</p>
+
+<div class="chart-box">
+<canvas id="clvChart"></canvas>
+</div>
+
+{% else %}
+
+<p>No prediction yet</p>
+
+{% endif %}
+
+</div>
+
+
+</div>
+
+
+
+<script>
+
+let segment = "{{ segment }}";
+
+let chartData;
+
+if(segment === "Low Value Customer"){
+chartData = [70,20,10];
+}
+else if(segment === "Medium Value Customer"){
+chartData = [20,60,20];
+}
+else if(segment === "High Value Customer"){
+chartData = [10,30,60];
+}
+else{
+chartData = [30,40,30];
+}
+
+
+const ctx = document.getElementById("clvChart");
+
+if(ctx){
+
+new Chart(ctx,{
+
+type:"doughnut",
+
+data:{
+
+labels:["Low Value","Medium Value","High Value"],
+
+datasets:[{
+
+data:chartData,
+
+backgroundColor:[
+"#ff6b6b",
+"#f7b731",
+"#26de81"
+],
+
+borderWidth:0
+
+}]
+
+},
+
+options:{
+
+responsive:true,
+maintainAspectRatio:false,
+
+plugins:{
+legend:{
+position:"bottom"
+}
+}
+
+}
+
+});
+
+}
+
+
+let pred = parseFloat("{{ prediction if prediction else 0 }}");
+
+if(!isNaN(pred) && pred > 0){
+
+document.getElementById("avgclv").innerText = "₹ " + pred.toFixed(0);
+
+let retention = Math.min(95, Math.max(40, pred / 80));
+
+document.getElementById("retention").innerText = retention.toFixed(0) + "%";
+
+let customers = Math.floor(pred / 4);
+
+document.getElementById("customers").innerText = customers;
+
+}
+
+</script>
+
+
+</body>
+</html>
